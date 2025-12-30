@@ -87,10 +87,10 @@ class TelegramService
             $this->sendMessage($chatId, "No websites are being monitored.");
             return;
         }
-        $message = "Monitored Websites:\n";
+        $message = "🌐 Monitored Websites:\n";
         foreach ($websites as $website) {
             $status = $website->status === 'up' ? '✅' : '⚠️';
-            $message .= "- {$website->url} (Status: {$status})\n";
+            $message .= "- {$website->url} ({$status})\n";
         }
 
         $this->sendMessage($chatId, $message);
