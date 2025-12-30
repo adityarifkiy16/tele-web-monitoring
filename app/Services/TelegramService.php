@@ -75,7 +75,8 @@ class TelegramService
         }
         $message = "Monitored Websites:\n";
         foreach ($websites as $website) {
-            $message .= "- {$website->url} (Status: {$website->status})\n";
+            $status = $website->status === 'up' ? '✅' : '⚠️';
+            $message .= "- {$website->url} (Status: {$status})\n";
         }
 
         $this->sendMessage($chatId, $message);
