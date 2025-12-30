@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Http;
+
 class TelegramService
 {
     protected $botToken;
@@ -18,13 +20,64 @@ class TelegramService
             'chat_id' => $chatId,
             'text' => $message,
         ];
+        Http::post($url, $params);
+    }
 
-        // Use Guzzle or any HTTP client to send the request
-        $client = new \GuzzleHttp\Client();
-        $response = $client->post($url, [
-            'form_params' => $params,
-        ]);
+    public function handleIncomingMessage($chatId, $text)
+    {
+        $args = preg_split('/\s+/', $text);
+        $command = $args[0] ?? '';
+        $url = $args[1] ?? '';
 
-        return json_decode($response->getBody(), true);
+        match ($command) {
+            '/start' => $this->sendMessage($chatId, "Welcome to the Website Monitor Bot! Use /add <url> to monitor a website."),
+            '/add' => $this->addWebsite($chatId, $url),
+            '/remove' => $this->removeWebsite($chatId, $url),
+            '/list' => $this->listWebsites($chatId),
+            default => $this->sendMessage($chatId, "Unknown command. Available commands: /add, /remove, /list"),
+        };
+    }
+
+    private function addWebsite($chatId, $url)
+    {
+        if (empty($url)) {
+            $this->sendMessage($chatId, "Please provide a URL to add.");
+            return;
+        }
+
+        \App\Models\Website::firstOrCreate(
+            ['url' => $url, 'chat_id' => $chatId],
+            ['status' => 'up']
+        );
+
+        $this->sendMessage($chatId, "Website $url added for monitoring.");
+    }
+
+    private function removeWebsite($chatId, $url)
+    {
+        if (empty($url)) {
+            $this->sendMessage($chatId, "Please provide a URL to remove.");
+            return;
+        }
+
+        \App\Models\Website::where('url', $url)->where('chat_id', $chatId)->delete();
+
+        $this->sendMessage($chatId, "Website $url removed from monitoring.");
+    }
+
+    private function listWebsites($chatId)
+    {
+        $websites = \App\Models\Website::where('chat_id', $chatId)->get();
+
+        if ($websites->isEmpty()) {
+            $this->sendMessage($chatId, "No websites are being monitored.");
+            return;
+        }
+        $message = "Monitored Websites:\n";
+        foreach ($websites as $website) {
+            $message .= "- {$website->url} (Status: {$website->status})\n";
+        }
+
+        $this->sendMessage($chatId, $message);
     }
 }

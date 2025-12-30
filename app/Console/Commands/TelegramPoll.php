@@ -24,9 +24,9 @@ class TelegramPoll extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(TelegramService $telegramService): void
     {
-          $token = config('services.telegram.bot_token');
+        $token = config('services.telegram.bot_token');
         $offsetFile = storage_path('app/telegram_offset.txt');
 
         $offset = file_exists($offsetFile)
@@ -50,9 +50,12 @@ class TelegramPoll extends Command
 
         foreach ($updates as $update) {
             file_put_contents($offsetFile, $update['update_id']);
-
-            // 👉 PROSES PESAN DI SINI
-            logger()->info('Telegram update', $update);
+            $chatId = $update['message']['chat']['id'] ?? null;
+            $text = trim($update['message']['text'] ?? '');
+            if(!$chatId || !$text) {
+                continue;
+            }
+            $telegramService->handleIncomingMessage($chatId, $text);            
         }
     }
 }
