@@ -30,12 +30,26 @@ class TelegramService
         $url = $args[1] ?? '';
 
         match ($command) {
-            '/start' => $this->sendMessage($chatId, "Welcome to the Website Monitor Bot! Use /add <url> to monitor a website."),
+            '/start' => $this->startMessage($chatId),
             '/add' => $this->addWebsite($chatId, $url),
             '/remove' => $this->removeWebsite($chatId, $url),
             '/list' => $this->listWebsites($chatId),
             default => $this->sendMessage($chatId, "Unknown command. Available commands: /add, /remove, /list"),
         };
+    }
+
+    private function startMessage($chatId)
+    {
+        $this->sendMessage(
+            $chatId,
+            "👋 *Welcome to Website Monitor Bot!*\n\n"
+                . "Bot ini membantu memantau status website Anda dan akan mengirim notifikasi jika website *DOWN* atau *UP kembali*.\n\n"
+                . "📌 *Available Commands:*\n"
+                . "/add <url> — Menambahkan website ke daftar monitoring\n"
+                . "/remove <url> — Menghapus website dari monitoring\n"
+                . "/list — Menampilkan daftar website yang sedang dimonitor\n\n"
+                . "⏱️ Monitoring berjalan otomatis setiap menit."
+        );
     }
 
     private function addWebsite($chatId, $url)
