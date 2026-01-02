@@ -29,7 +29,7 @@ class MonitorWebsites extends Command
     {
         Website::all()->each(function ($website) use ($telegramService) {
             try {
-                $response = \Illuminate\Support\Facades\Http::timeout(10)->get($website->url);
+                $response = \Illuminate\Support\Facades\Http::timeout(30)->get($website->url);
                 $status = $response->successful() ? 'up' : 'down';
             } catch (\Exception $e) {
                 $status = 'down';
